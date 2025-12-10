@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:7
+    container_name: blockmate-mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: blockmate
+    networks:
+      - blockmate-network
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: blockmate-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - MONGODB_URL=mongodb://mongodb:27017
+      - MONGODB_DB_NAME=blockmate
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    depends_on:
+      - mongodb
+    networks:
+      - blockmate-network
+    volumes:
+      - ./backend:/app/backend
+
+  bot:
+    build:
+      context: .
+      dockerfile: Dockerfile.bot
+    container_name: blockmate-bot
+    environment:
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - BACKEND_URL=http://backend:8000
+    depends_on:
+      - backend
+    networks:
+      - blockmate-network
+    volumes:
+      - ./bot:/app/bot
+
+volumes:
+  mongodb_data:
+
+
+networks:
+  blockmate-network:
+    driver: bridge
