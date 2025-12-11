@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
 Скрипт для тестування підключення до MongoDB та Backend API
+
 """
 import asyncio
 import os
